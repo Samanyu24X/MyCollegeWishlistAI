@@ -1,30 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import questions from './questions';
 
 const QuestionForm = () => {
-  const [formData, setFormData] = useState({
-    experience: '',
-    preference: '',
-    frequency: '',
-    feedback: ''
-  });
+  const initialFormData = questions.reduce((acc, q) => {
+    acc[q.id] = ''; // Set each question ID as a key with an empty string as the initial value
+    return acc;
+  }, {});
 
-  const questions = [
-    {
-      id: 'experience',
-      question: 'Question 1',
-      options: ['0-2 years', '3-5 years', '5+ years']
-    },
-    {
-      id: 'preference',
-      question: 'Question 2',
-      options: ['VS Code', 'WebStorm', 'Sublime Text', 'Other']
-    },
-    {
-      id: 'frequency',
-      question: 'Question 3',
-      options: ['Daily', 'Weekly', 'Monthly', 'Occasionally']
-    }
-  ];
+  const [formData, setFormData] = useState(initialFormData);
+  const [isListening, setIsListening] = useState(false);
+
+  // Use useMemo to create the recognition object only once
+  const recognition = useMemo(() => {
+    const recog = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recog.interimResults = true;
+    return recog;
+  }, []);
+
+  // Speech recognition event handlers
+  useEffect(() => {
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.resultIndex][0].transcript;
+      const isFinal = event.results[event.resultIndex].isFinal; // Check if the result is final
+  
+      if (isFinal) {
+        setFormData((prevData) => ({
+          ...prevData,
+          collegePreferences: prevData.collegePreferences + ' ' + transcript, // Append the new text
+        }));
+      }
+    };
+  
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+  
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error', event);
+    };
+  }, [recognition]);
+  
+
+  const handleStartListening = () => {
+    setIsListening(true);
+    recognition.start();
+  };
+
+  const handleStopListening = () => {
+    recognition.stop();
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -32,58 +56,80 @@ const QuestionForm = () => {
     // Handle form submission here
   };
 
+
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 py-4">
+      <div className="w-2/3 mx-auto px-12">
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Developer Survey</h2>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">Tell Us About Yourself!</h2>
+
+          <form onSubmit={handleSubmit} className="space-y-6 w-full">
             {questions.map((q) => (
-              <div key={q.id} className="space-y-4">
-                <label className="text-lg font-medium text-gray-700">
-                  {q.question}
-                </label>
-                <div className="space-y-2">
-                  {q.options.map((option) => (
-                    <div key={option} className="flex items-center">
-                      <input
-                        type="radio"
-                        id={`${q.id}-${option}`}
-                        name={q.id}
-                        value={option}
-                        checked={formData[q.id] === option}
-                        onChange={(e) => 
-                          setFormData((prev) => ({ ...prev, [q.id]: e.target.value }))
-                        }
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                      />
-                      <label
-                        htmlFor={`${q.id}-${option}`}
-                        className="ml-2 text-gray-600"
-                      >
+              <div key={q.id} className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 block">{q.question}</label>
+                {q.answerType === 'textbox' && (
+                  <input
+                    type="text"
+                    value={formData[q.id]}
+                    onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
+                    placeholder={q.placeholder}
+                    className="w-1/12 p-1 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                )}
+                {q.answerType === 'dropdown' && (
+                  <select
+                    value={formData[q.id]}
+                    onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
+                    className="w-1/6 h-8 p-1 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select an option</option>
+                    {q.options.map((option) => (
+                      <option key={option} value={option}>
                         {option}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {q.answerType === 'slider' && (
+                  <>
+                    <input
+                      type="range"
+                      min={q.min}
+                      max={q.max}
+                      step={q.step}
+                      value={formData[q.id]}
+                      onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
+                      className="w-1/6 p-1 mt-2"
+                    />
+                    <div className="text-gray-600 text-sm mt-1">{formData[q.id]}</div> {/* Displays current slider value */}
+                  </>
+                )}
               </div>
             ))}
 
-            <div className="space-y-4">
-              <label className="text-lg font-medium text-gray-700">
-                Open Text Area
+            <div>
+              <label htmlFor="collegePreferences" className="text-base font-medium">
+                What do you personally want in a college? Tell us about the activities, events, weather, or environments that interest you!
               </label>
               <textarea
-                value={formData.feedback}
-                onChange={(e) => 
-                  setFormData((prev) => ({ ...prev, feedback: e.target.value }))
-                }
-                className="w-full min-h-32 p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Type your feedback here..."
+                id="collegePreferences"
+                value={formData.collegePreferences}
+                onChange={(e) => setFormData({ ...formData, collegePreferences: e.target.value })}
+                placeholder="ex: I want a college with a football team and warm weather. I also want to be near a city."
+                className="w-full h-32 mt-2 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               />
+              <button
+                type="button"
+                onClick={isListening ? handleStopListening : handleStartListening}
+                className={`py-2 px-4 rounded-md ${isListening ? 'bg-red-600' : 'bg-blue-600'} text-white`}
+              >
+                {isListening ? 'Stop Recording' : 'Start Recording'}
+              </button>
+              <span className="ml-4 text-gray-700">
+                Too much to write down? Use this button for speech to text!
+              </span>
             </div>
 
             <button
