@@ -1,9 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Particles from 'react-tsparticles';
 
-const LandingPage = ({ onGetStarted }) => {
+const LandingPage = () => {
+    const navigate = useNavigate(); // Hook to navigate between routes
+
     return (
         <div className="relative bg-gradient-to-r from-black via-purple-900 to-gray-900 text-white min-h-screen overflow-hidden">
+            {/* Background Image */}
+            <img src="/ai.jpg" alt="AI" className="absolute top-0 left-0 w-full h-full object-cover opacity-20 z-0" />
+
             {/* Particles Background */}
             <Particles
                 options={{
@@ -20,7 +26,7 @@ const LandingPage = ({ onGetStarted }) => {
             />
 
             {/* Hero Section */}
-            <section className="relative z-10 text-center flex flex-col justify-center items-center h-[80vh]">
+            <section className="relative z-10 text-center flex flex-col justify-center items-center h-[80vh] pt-24">
                 <h1 className="text-7xl md:text-9xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-500 animate-glow">
                     Your Perfect College Awaits
                 </h1>
@@ -28,7 +34,7 @@ const LandingPage = ({ onGetStarted }) => {
                     AI-driven college recommendations tailored for you.
                 </p>
                 <button
-                    onClick={onGetStarted}
+                    onClick={() => navigate('/form')} // Navigate to form page on click
                     className="bg-gradient-to-r from-cyan-400 to-purple-500 py-4 px-12 rounded-full text-lg font-semibold shadow-2xl hover:shadow-neon transition-transform transform hover:scale-110"
                 >
                     Get Started
@@ -36,6 +42,29 @@ const LandingPage = ({ onGetStarted }) => {
                 <div className="scroll-indicator mt-10 animate-bounce">
                     <span className="text-gray-300">Scroll Down</span>
                     <div className="scroll-arrow"></div>
+                </div>
+            </section>
+
+            {/* What We Do Section */}
+            <section className="relative z-10 text-center py-16 bg-black/30 text-white">
+                <h2 className="text-5xl font-extrabold mb-10 text-white">Here's What We Do</h2>
+                <div className="flex flex-col space-y-6 md:space-y-0 md:flex-row justify-around">
+                    <div className="w-full md:w-1/4 bg-black/50 p-8 rounded-xl shadow-lg">
+                        <h3 className="text-3xl font-bold mb-4 text-cyan-300">🎤 Audio & Text Input</h3>
+                        <p className="text-gray-300">Let users use free-flowing audio and text input, achieving 90%+ accuracy for college recommendation lists.</p>
+                    </div>
+                    <div className="w-full md:w-1/4 bg-black/50 p-8 rounded-xl shadow-lg">
+                        <h3 className="text-3xl font-bold mb-4 text-green-400">👥 Counselor Matching</h3>
+                        <p className="text-gray-300">We match you with a college counselor or peer to guide your journey.</p>
+                    </div>
+                    <div className="w-full md:w-1/4 bg-black/50 p-8 rounded-xl shadow-lg">
+                        <h3 className="text-3xl font-bold mb-4 text-yellow-400">📚 Updated College Info</h3>
+                        <p className="text-gray-300">We provide up-to-date information on colleges, helping you make informed decisions.</p>
+                    </div>
+                    <div className="w-full md:w-1/4 bg-black/50 p-8 rounded-xl shadow-lg">
+                        <h3 className="text-3xl font-bold mb-4 text-purple-400">🛠️ Freedom of Choice</h3>
+                        <p className="text-gray-300">Our platform gives users complete freedom to explore and choose.</p>
+                    </div>
                 </div>
             </section>
 

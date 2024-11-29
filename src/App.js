@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import QuestionForm from './components/QuestionForm';
 import OutputPage from './components/OutputPage';
-import Navbar from './components/Navbar'; // Add Navbar
-import Footer from './components/Footer'; // Add Footer
+import ContactUs from './components/ContactUs';
+import AboutUs from './components/AboutUs';
+import RatingPage from './components/RatingPage'; // Import the RatingPage
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import './style.css';
 
 function App() {
-  const [showForm, setShowForm] = useState(false);
   const [recommendations, setRecommendations] = useState(null);
 
   const handleFormSubmit = (data) => {
@@ -29,17 +32,20 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <Navbar /> {/* Include Navbar */}
-      {!showForm ? (
-        <LandingPage onGetStarted={() => setShowForm(true)} />
-      ) : !recommendations ? (
-        <QuestionForm onFormSubmit={handleFormSubmit} />
-      ) : (
-        <OutputPage recommendations={recommendations} />
-      )}
-      <Footer /> {/* Include Footer */}
-    </div>
+    <Router>
+      <div className="App">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<LandingPage onGetStarted={() => handleFormSubmit()} />} />
+          <Route path="/form" element={<QuestionForm onFormSubmit={handleFormSubmit} />} />
+          <Route path="/output" element={<OutputPage recommendations={recommendations} />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/rating" element={<RatingPage />} /> {/* Add this line for RatingPage */}
+        </Routes>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
