@@ -52,6 +52,15 @@ const QuestionForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Form data contains your GPA, SAT, and state
+    const payload = {
+      gpa: formData.gpa, // This maps to the gpa slider
+      satScoreMath: formData.satScoreMath, // This maps to the SAT score slider
+      satScoreEnglish: formData.satScoreEnglish,
+      state: formData.state,
+    };
+
     const recommendationsData = {
       stretch: [{ name: 'Harvard University', location: 'Cambridge, MA', ranking: 1 }],
       target: [{ name: 'University of Michigan', location: 'Ann Arbor, MI', ranking: 25 }],
