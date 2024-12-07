@@ -1,45 +1,47 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import questions from './questions';
+import OutputPage from './OutputPage';
 
 const QuestionForm = () => {
   const initialFormData = questions.reduce((acc, q) => {
-    acc[q.id] = ''; // Set each question ID as a key with an empty string as the initial value
+    // Special handling for states
+    if (q.id === 'states') {
+      acc[q.id] = [];
+    } else {
+      acc[q.id] = '';
+    }
     return acc;
   }, {});
 
   const [formData, setFormData] = useState(initialFormData);
   const [isListening, setIsListening] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [recommendations, setRecommendations] = useState(null);
 
-  // Use useMemo to create the recognition object only once
   const recognition = useMemo(() => {
     const recog = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recog.interimResults = true;
     return recog;
   }, []);
 
-  // Speech recognition event handlers
   useEffect(() => {
     recognition.onresult = (event) => {
       const transcript = event.results[event.resultIndex][0].transcript;
-      const isFinal = event.results[event.resultIndex].isFinal; // Check if the result is final
-  
+      const isFinal = event.results[event.resultIndex].isFinal;
       if (isFinal) {
         setFormData((prevData) => ({
           ...prevData,
-          collegePreferences: prevData.collegePreferences + ' ' + transcript, // Append the new text
+          collegePreferences: (prevData.collegePreferences || '') + ' ' + transcript,
         }));
       }
     };
-  
     recognition.onend = () => {
       setIsListening(false);
     };
-  
     recognition.onerror = (event) => {
       console.error('Speech recognition error', event);
     };
   }, [recognition]);
-  
 
   const handleStartListening = () => {
     setIsListening(true);
@@ -50,48 +52,96 @@ const QuestionForm = () => {
     recognition.stop();
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission here
+  const handleStateChange = (state) => {
+    setFormData(prev => {
+      const currentStates = prev.states || [];
+      if (currentStates.includes(state)) {
+        // Deselect if already selected
+        return {
+          ...prev,
+          states: currentStates.filter(s => s !== state)
+        };
+      }
+      // Select if not at max and not already selected
+      if (currentStates.length < 3) {
+        return {
+          ...prev,
+          states: [...currentStates, state]
+        };
+      }
+      // If already at max, do nothing
+      return prev;
+    });
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const recommendationsData = {
+      stretch: [{ name: 'Harvard University', location: 'Cambridge, MA', ranking: 1 }],
+      target: [{ name: 'University of Michigan', location: 'Ann Arbor, MI', ranking: 25 }],
+      safety: [{ name: 'University of Texas', location: 'Austin, TX', ranking: 50 }]
+    };
+    setRecommendations(recommendationsData);
+    setSubmitted(true);
+  };
 
+  if (submitted && recommendations) {
+    return <OutputPage recommendations={recommendations} />;
+  }
+
+  // Find the states question
+  const statesQuestion = questions.find(q => q.id === 'states');
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4">
-      <div className="w-2/3 mx-auto px-12">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">Tell Us About Yourself!</h2>
-
-          <form onSubmit={handleSubmit} className="space-y-6 w-full">
+    <div className="min-h-screen bg-gradient-to-r from-indigo-900 via-purple-900 to-black py-12 text-white">
+      <div className="w-3/4 mx-auto px-12">
+        <div className="bg-white rounded-lg shadow-lg p-10 transition-all transform hover:scale-105 backdrop-blur-lg bg-opacity-20">
+          <h2 className="text-4xl font-extrabold text-center text-white mb-8">Discover Your College Match</h2>
+          <form onSubmit={handleSubmit} className="space-y-8">
             {questions.map((q) => (
-              <div key={q.id} className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 block">{q.question}</label>
-                {q.answerType === 'textbox' && (
-                  <input
-                    type="text"
-                    value={formData[q.id]}
-                    onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
-                    placeholder={q.placeholder}
-                    className="w-1/12 p-1 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                )}
-                {q.answerType === 'dropdown' && (
-                  <select
-                    value={formData[q.id]}
-                    onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
-                    className="w-1/6 h-8 p-1 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select an option</option>
-                    {q.options.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
+              <div key={q.id} className="space-y-4">
+                <label className="text-xl font-semibold text-white">{q.question}</label>
+                {q.id === 'states' ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {statesQuestion.options.map((state) => (
+                      <label
+                        key={state}
+                        className={`flex items-center space-x-2 p-2 rounded-lg ${formData.states.includes(state)
+                          ? 'bg-pink-600 bg-opacity-50'
+                          : 'bg-black bg-opacity-20'
+                          } ${formData.states.length >= 3 && !formData.states.includes(state)
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'cursor-pointer'
+                          }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.states.includes(state)}
+                          onChange={() => handleStateChange(state)}
+                          disabled={formData.states.length >= 3 && !formData.states.includes(state)}
+                          className="form-checkbox h-5 w-5 text-pink-600"
+                        />
+                        <span>{state}</span>
+                      </label>
                     ))}
-                  </select>
+                  </div>
+                ) : (
+                  // Existing dropdown and slider logic remains the same
+                  q.answerType === 'dropdown' && (
+                    <select
+                      value={formData[q.id]}
+                      onChange={(e) => setFormData(prev => ({ ...prev, [q.id]: e.target.value }))}
+                      className="w-full h-12 p-4 bg-black bg-opacity-40 text-white rounded-lg shadow-inner focus:ring-pink-500 focus:border-pink-500"
+                    >
+                      <option value="">Select an option</option>
+                      {q.options.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  )
                 )}
-
                 {q.answerType === 'slider' && (
                   <>
                     <input
@@ -100,41 +150,38 @@ const QuestionForm = () => {
                       max={q.max}
                       step={q.step}
                       value={formData[q.id]}
-                      onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
-                      className="w-1/6 p-1 mt-2"
+                      onChange={(e) => setFormData(prev => ({ ...prev, [q.id]: e.target.value }))}
+                      className="w-full mt-2 slider-thumb transition-transform transform hover:scale-105 bg-gradient-to-r from-purple-500 to-indigo-500"
                     />
-                    <div className="text-gray-600 text-sm mt-1">{formData[q.id]}</div> {/* Displays current slider value */}
+                    <div className="text-gray-300 text-sm mt-1">{formData[q.id]}</div>
                   </>
                 )}
               </div>
             ))}
-
+            {/* Rest of the form remains the same */}
             <div>
-              <label htmlFor="collegePreferences" className="text-base font-medium">
-                What do you personally want in a college? Tell us about the activities, events, weather, or environments that interest you!
+              <label htmlFor="collegePreferences" className="text-lg font-medium">
+                What do you want in a college?
               </label>
               <textarea
                 id="collegePreferences"
-                value={formData.collegePreferences}
-                onChange={(e) => setFormData({ ...formData, collegePreferences: e.target.value })}
-                placeholder="ex: I want a college with a football team and warm weather. I also want to be near a city."
-                className="w-full h-32 mt-2 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                value={formData.collegePreferences || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, collegePreferences: e.target.value }))}
+                placeholder="Describe your preferences..."
+                className="w-full h-32 mt-4 p-4 bg-black bg-opacity-40 text-white rounded-lg shadow-inner focus:ring-pink-500 focus:border-pink-500"
               />
               <button
                 type="button"
                 onClick={isListening ? handleStopListening : handleStartListening}
-                className={`py-2 px-4 rounded-md ${isListening ? 'bg-red-600' : 'bg-blue-600'} text-white`}
+                className={`mt-4 py-3 px-6 rounded-lg ${isListening ? 'bg-red-600' : 'bg-pink-600'} text-white font-bold transition-transform transform hover:scale-105`}
               >
                 {isListening ? 'Stop Recording' : 'Start Recording'}
               </button>
-              <span className="ml-4 text-gray-700">
-                Too much to write down? Use this button for speech to text!
-              </span>
+              <span className="ml-4 text-gray-400">Too much to type? Use speech-to-text!</span>
             </div>
-
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="w-full bg-gradient-to-r from-pink-600 to-purple-800 text-white py-4 px-6 rounded-lg mt-8 font-bold shadow-lg hover:shadow-2xl transition-transform transform hover:scale-105"
             >
               Submit
             </button>
