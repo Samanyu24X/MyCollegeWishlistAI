@@ -101,46 +101,28 @@ const QuestionForm = () => {
             {questions.map((q) => (
               <div key={q.id} className="space-y-4">
                 <label className="text-xl font-semibold text-white">{q.question}</label>
-                {q.id === 'states' ? (
-                  <div className="grid grid-cols-3 gap-2">
-                    {statesQuestion.options.map((state) => (
-                      <label
-                        key={state}
-                        className={`flex items-center space-x-2 p-2 rounded-lg ${formData.states.includes(state)
-                          ? 'bg-pink-600 bg-opacity-50'
-                          : 'bg-black bg-opacity-20'
-                          } ${formData.states.length >= 3 && !formData.states.includes(state)
-                            ? 'opacity-50 cursor-not-allowed'
-                            : 'cursor-pointer'
-                          }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.states.includes(state)}
-                          onChange={() => handleStateChange(state)}
-                          disabled={formData.states.length >= 3 && !formData.states.includes(state)}
-                          className="form-checkbox h-5 w-5 text-pink-600"
-                        />
-                        <span>{state}</span>
-                      </label>
+                {q.answerType === 'textbox' && (
+                  <input
+                    type="text"
+                    value={formData[q.id]}
+                    onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
+                    placeholder={q.placeholder}
+                    className="w-full p-4 bg-black bg-opacity-40 text-white rounded-lg shadow-inner focus:ring-pink-500 focus:border-pink-500"
+                  />
+                )}
+                {q.answerType === 'dropdown' && (
+                  <select
+                    value={formData[q.id]}
+                    onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
+                    className="w-full h-12 p-4 bg-black bg-opacity-40 text-white rounded-lg shadow-inner focus:ring-pink-500 focus:border-pink-500"
+                  >
+                    <option value="">Select an option</option>
+                    {q.options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
                     ))}
-                  </div>
-                ) : (
-                  // Existing dropdown and slider logic remains the same
-                  q.answerType === 'dropdown' && (
-                    <select
-                      value={formData[q.id]}
-                      onChange={(e) => setFormData(prev => ({ ...prev, [q.id]: e.target.value }))}
-                      className="w-full h-12 p-4 bg-black bg-opacity-40 text-white rounded-lg shadow-inner focus:ring-pink-500 focus:border-pink-500"
-                    >
-                      <option value="">Select an option</option>
-                      {q.options.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  )
+                  </select>
                 )}
                 {q.answerType === 'slider' && (
                   <>
