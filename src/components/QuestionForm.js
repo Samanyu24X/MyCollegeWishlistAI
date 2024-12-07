@@ -50,7 +50,7 @@ const QuestionForm = () => {
     recognition.stop();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Form data contains your GPA, SAT, and state
@@ -61,6 +61,28 @@ const QuestionForm = () => {
       state: formData.state,
     };
 
+    try {
+      const response = await fetch("http://localhost:5000/get_colleges", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const recommendations = await response.json();
+        console.log("Recommendations:", recommendations);
+        setRecommendations(recommendations);
+        setSubmitted(true);
+      } else {
+        console.error("Error:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+
+    // DUMMY DATA
     const recommendationsData = {
       stretch: [{ name: 'Harvard University', location: 'Cambridge, MA', ranking: 1 }],
       target: [{ name: 'University of Michigan', location: 'Ann Arbor, MI', ranking: 25 }],
