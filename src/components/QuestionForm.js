@@ -55,10 +55,11 @@ const QuestionForm = () => {
 
     // Form data contains your GPA, SAT, and state
     const payload = {
-      gpa: formData.gpa, // This maps to the gpa slider
+      // gpa: formData.gpa, // This maps to the gpa slider
       satScoreMath: formData.satScoreMath, // This maps to the SAT score slider
       satScoreEnglish: formData.satScoreEnglish,
-      state: formData.state,
+      // state: formData.state,
+      state: ["CA", "TX", "FL"],
     };
 
     try {
@@ -72,25 +73,74 @@ const QuestionForm = () => {
 
       if (response.ok) {
         const recommendations = await response.json();
-        console.log("Recommendations:", recommendations);
-        setRecommendations(recommendations);
+        console.log("Got DB query results, here they are:");
+        console.log(recommendations);
+
+        // Capture the collegePreferences textarea value
+        const collegePreferences = formData.collegePreferences; // Assuming formData.collegePreferences holds the textarea value
+        const numQuestions = 3;
+
+        const apiAddress = "http://35.94.88.79/";
+        const headers = {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          "X-API-Key": "hfMDxX3B6paKtUM3g37xUbV_csMYwUaXQS7KtY3U4GM",
+        };
+
+        const apiResults = []; // this will hold a list of items, each item should have a college name as well as a description of the college
+
+        // Loop through each recommendation and make an API call
+        for (const college of recommendations) {
+          const payload = {
+            preferences: collegePreferences,
+            num_questions: numQuestions,
+            colleges: [college], // Assuming each recommendation has a `name` property
+          };
+
+          try {
+            const apiResponse = await fetch(apiAddress, {
+              method: "POST",
+              headers: headers,
+              body: JSON.stringify(payload),
+            });
+
+            if (apiResponse.ok) {
+              const result = await apiResponse.json();
+              console.log("API Response for College:", college.name, result);
+
+              // Add the result to the apiResults list
+              apiResults.push({
+                collegeName: college.name,
+                response: result,
+              });
+            } else {
+              console.error("API Error for College:", college.name, apiResponse.statusText);
+            }
+          } catch (apiError) {
+            console.error("Error calling API for College:", college.name, apiError);
+
+            // Optionally, add an error object to the apiResults list
+            apiResults.push({
+              collegeName: college.name,
+              response: { error: apiError.message },
+            });
+          }
+        }
+
+        // Log the full list of results
+        console.log("All API Results:", apiResults);
+
+        // Final steps after all API calls
+        setRecommendations(apiResults); // Store results in state (or process them further)
         setSubmitted(true);
       } else {
-        console.error("Error:", response.statusText);
+        console.error("Error fetching recommendations:", response.statusText);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
     }
-
-    // DUMMY DATA
-    const recommendationsData = {
-      stretch: [{ name: 'Harvard University', location: 'Cambridge, MA', ranking: 1 }],
-      target: [{ name: 'University of Michigan', location: 'Ann Arbor, MI', ranking: 25 }],
-      safety: [{ name: 'University of Texas', location: 'Austin, TX', ranking: 50 }]
-    };
-    setRecommendations(recommendationsData);
-    setSubmitted(true);
   };
+
 
   if (submitted && recommendations) {
     return <OutputPage recommendations={recommendations} />;
