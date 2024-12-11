@@ -4,7 +4,6 @@ import OutputPage from './OutputPage';
 
 const QuestionForm = () => {
   const initialFormData = questions.reduce((acc, q) => {
-    // Special handling for states
     if (q.id === 'states') {
       acc[q.id] = [];
     } else {
@@ -53,23 +52,20 @@ const QuestionForm = () => {
   };
 
   const handleStateChange = (state) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const currentStates = prev.states || [];
       if (currentStates.includes(state)) {
-        // Deselect if already selected
         return {
           ...prev,
-          states: currentStates.filter(s => s !== state)
+          states: currentStates.filter((s) => s !== state),
         };
       }
-      // Select if not at max and not already selected
       if (currentStates.length < 3) {
         return {
           ...prev,
-          states: [...currentStates, state]
+          states: [...currentStates, state],
         };
       }
-      // If already at max, do nothing
       return prev;
     });
   };
@@ -79,7 +75,7 @@ const QuestionForm = () => {
     const recommendationsData = {
       stretch: [{ name: 'Harvard University', location: 'Cambridge, MA', ranking: 1 }],
       target: [{ name: 'University of Michigan', location: 'Ann Arbor, MI', ranking: 25 }],
-      safety: [{ name: 'University of Texas', location: 'Austin, TX', ranking: 50 }]
+      safety: [{ name: 'University of Texas', location: 'Austin, TX', ranking: 50 }],
     };
     setRecommendations(recommendationsData);
     setSubmitted(true);
@@ -89,8 +85,7 @@ const QuestionForm = () => {
     return <OutputPage recommendations={recommendations} />;
   }
 
-  // Find the states question
-  const statesQuestion = questions.find(q => q.id === 'states');
+  const statesQuestion = questions.find((q) => q.id === 'states');
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-indigo-900 via-purple-900 to-black py-12 text-white">
@@ -101,16 +96,34 @@ const QuestionForm = () => {
             {questions.map((q) => (
               <div key={q.id} className="space-y-4">
                 <label className="text-xl font-semibold text-white">{q.question}</label>
-                {q.answerType === 'textbox' && (
-                  <input
-                    type="text"
-                    value={formData[q.id]}
-                    onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
-                    placeholder={q.placeholder}
-                    className="w-full p-4 bg-black bg-opacity-40 text-white rounded-lg shadow-inner focus:ring-pink-500 focus:border-pink-500"
-                  />
-                )}
-                {q.answerType === 'dropdown' && (
+                {q.id === 'states' ? (
+                  <div className="grid grid-cols-3 gap-4">
+                    {statesQuestion.options.map((state) => (
+                      <label
+                        key={state}
+                        className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${formData[q.id].includes(state)
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-gray-200 text-gray-700'
+                          } ${formData[q.id].length >= 3 && !formData[q.id].includes(state)
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                          }`}
+                      >
+                        <input
+                          type="checkbox"
+                          value={state}
+                          checked={formData[q.id].includes(state)}
+                          onChange={() => handleStateChange(state)}
+                          disabled={
+                            formData[q.id].length >= 3 && !formData[q.id].includes(state)
+                          }
+                          className="form-checkbox h-5 w-5 text-purple-600"
+                        />
+                        <span>{state}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : q.answerType === 'dropdown' ? (
                   <select
                     value={formData[q.id]}
                     onChange={(e) => setFormData({ ...formData, [q.id]: e.target.value })}
@@ -123,8 +136,7 @@ const QuestionForm = () => {
                       </option>
                     ))}
                   </select>
-                )}
-                {q.answerType === 'slider' && (
+                ) : q.answerType === 'slider' && (
                   <>
                     <input
                       type="range"
@@ -132,7 +144,9 @@ const QuestionForm = () => {
                       max={q.max}
                       step={q.step}
                       value={formData[q.id]}
-                      onChange={(e) => setFormData(prev => ({ ...prev, [q.id]: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, [q.id]: e.target.value }))
+                      }
                       className="w-full mt-2 slider-thumb transition-transform transform hover:scale-105 bg-gradient-to-r from-purple-500 to-indigo-500"
                     />
                     <div className="text-gray-300 text-sm mt-1">{formData[q.id]}</div>
@@ -140,7 +154,6 @@ const QuestionForm = () => {
                 )}
               </div>
             ))}
-            {/* Rest of the form remains the same */}
             <div>
               <label htmlFor="collegePreferences" className="text-lg font-medium">
                 What do you want in a college?
@@ -148,14 +161,17 @@ const QuestionForm = () => {
               <textarea
                 id="collegePreferences"
                 value={formData.collegePreferences || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, collegePreferences: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, collegePreferences: e.target.value }))
+                }
                 placeholder="Describe your preferences..."
                 className="w-full h-32 mt-4 p-4 bg-black bg-opacity-40 text-white rounded-lg shadow-inner focus:ring-pink-500 focus:border-pink-500"
               />
               <button
                 type="button"
                 onClick={isListening ? handleStopListening : handleStartListening}
-                className={`mt-4 py-3 px-6 rounded-lg ${isListening ? 'bg-red-600' : 'bg-pink-600'} text-white font-bold transition-transform transform hover:scale-105`}
+                className={`mt-4 py-3 px-6 rounded-lg ${isListening ? 'bg-red-600' : 'bg-pink-600'
+                  } text-white font-bold transition-transform transform hover:scale-105`}
               >
                 {isListening ? 'Stop Recording' : 'Start Recording'}
               </button>

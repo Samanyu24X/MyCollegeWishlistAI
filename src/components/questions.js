@@ -25,7 +25,7 @@ const questions = [
     },
     {
         id: 'states',
-        question: 'Select up to 3 states where you are interested in attending college',
+        question: 'Select up to 3 states where you are interested in attending college:',
         answerType: 'multiselect',
         maxSelections: 3,
         options: [
@@ -36,8 +36,8 @@ const questions = [
             'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
             'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
             'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-            'Wisconsin', 'Wyoming'
-        ]
+            'Wisconsin', 'Wyoming',
+        ],
     },
     {
         id: 'firstChoiceMajor',
@@ -57,8 +57,8 @@ const questions = [
             'Broadcasting', 'Communication Studies', 'Public Relations', 'Digital Humanities',
             'Environmental Studies', 'Global Studies', 'Neuroscience', 'Sustainability', 'Architecture',
             'Design', 'Film Studies', 'Game Design', 'Information Technology', 'Library Science',
-            'Museum Studies', 'Urban Planning'
-        ]
+            'Museum Studies', 'Urban Planning',
+        ],
     },
     {
         id: 'secondChoiceMajor',
@@ -78,8 +78,8 @@ const questions = [
             'Broadcasting', 'Communication Studies', 'Public Relations', 'Digital Humanities',
             'Environmental Studies', 'Global Studies', 'Neuroscience', 'Sustainability', 'Architecture',
             'Design', 'Film Studies', 'Game Design', 'Information Technology', 'Library Science',
-            'Museum Studies', 'Urban Planning'
-        ]
+            'Museum Studies', 'Urban Planning',
+        ],
     },
     {
         id: 'thirdChoiceMajor',
@@ -99,8 +99,8 @@ const questions = [
             'Broadcasting', 'Communication Studies', 'Public Relations', 'Digital Humanities',
             'Environmental Studies', 'Global Studies', 'Neuroscience', 'Sustainability', 'Architecture',
             'Design', 'Film Studies', 'Game Design', 'Information Technology', 'Library Science',
-            'Museum Studies', 'Urban Planning'
-        ]
+            'Museum Studies', 'Urban Planning',
+        ],
     },
     {
         id: 'minors',
@@ -120,9 +120,9 @@ const questions = [
             'Broadcasting', 'Communication Studies', 'Public Relations', 'Digital Humanities',
             'Environmental Studies', 'Global Studies', 'Neuroscience', 'Sustainability', 'Architecture',
             'Design', 'Film Studies', 'Game Design', 'Information Technology', 'Library Science',
-            'Museum Studies', 'Urban Planning'
-        ]
-    }
+            'Museum Studies', 'Urban Planning',
+        ],
+    },
 ];
 
 export default questions;
